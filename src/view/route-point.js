@@ -1,4 +1,6 @@
 /* global require */
+import {turnTemplateIntoElement} from '../util/util.js';
+
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
@@ -35,7 +37,7 @@ const getOfferItems = (offers) => {
   return offerList;
 };
 
-export const createNewPoint = (point) => {
+const createNewPoint = (point) => {
   const eventStart = point.dates.from;
   const eventEnd = point.dates.to;
   const eventMonthDay = dayjs(eventStart).format('MMM DD').toUpperCase();
@@ -86,3 +88,26 @@ export const createNewPoint = (point) => {
     </div>
   </li>`;
 };
+
+export class RoutePointView {
+  constructor(point) {
+    this._element = null;
+    this._point = point;
+  }
+
+  getTemplate() {
+    return createNewPoint(this._point);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = turnTemplateIntoElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  deleteElement() {
+    this._element = null;
+  }
+}

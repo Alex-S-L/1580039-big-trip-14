@@ -1,37 +1,93 @@
-import {createMenu} from './view/menu.js';
-import {createRoutInfo} from './view/rout-info.js';
-import {createFilter} from './view/filter.js';
-import {createTravelListSorting} from './view/travel-list-sorting.js';
-import {createEmptyListMessage} from './view/empty-list-message.js';
-import {createTravelList} from './view/travel-list.js';
-// import {createNewPointForm} from './view/point-adding-form.js';
-// import {createPointEditingForm} from './view/point-editing-form.js';
-import {createForm} from './view/point-edditing-and-adding-form.js';
-import {createNewPoint} from './view/new-point.js';
+import {renderElement} from './util/util.js';
+
+import {RouteInfoView} from './view/route-info.js';
+import {MenuView} from './view/menu.js';
+import {FilterView} from './view/filter.js';
+import {TravelListSortingView} from './view/travel-list-sorting.js';
+import {EmptyListMessageView} from './view/empty-list-message.js';
+import {TravelListView} from './view/travel-list.js';
+import {RoutePointView} from './view/route-point.js';
+// import {AddingFormView} from './view/point-adding-form.js';
+import {EditingFormView} from './view/point-editing-form.js';
+// import {FormView} from './view/point-edditing-and-adding-form.js';
+
 import {getRoutePointDescription} from './model/mock/route-point.js';
 
-const POINTS_LIST_ITEMS_COUNT = 13;
+const POINTS_LIST_ITEMS_COUNT = 10;
 const routePoints = new Array(POINTS_LIST_ITEMS_COUNT).fill().map(getRoutePointDescription);
-const tripMeta = document.querySelector('.trip-main');
-const menu = tripMeta.querySelector('.trip-controls__navigation');
-const filter = tripMeta.querySelector('.trip-controls__filters');
-const tripEvents = document.querySelector('.trip-events');
+const pageHeader = document.querySelector('.page-header');
+const headerMainInformation = pageHeader.querySelector('.trip-main');
+const headerMenu = pageHeader.querySelector('.trip-controls__navigation');
+const headerFilter = pageHeader.querySelector('.trip-controls__filters');
+const travelContainer = document.querySelector('.trip-events');
 
-const renderTemplate = (container, template, position = 'beforeend') => {
-  container.insertAdjacentHTML(position, template);
+const renderHeader = () => {
+  renderElement(headerMainInformation, new RouteInfoView(routePoints).getElement(), 'begin');
+  renderElement(headerMenu, new MenuView().getElement(), 'end');
+  renderElement(headerFilter, new FilterView().getElement(), 'end');
 };
 
-renderTemplate(tripMeta, createRoutInfo(), 'afterbegin');
-renderTemplate(menu, createMenu());
-renderTemplate(filter, createFilter());
-renderTemplate(tripEvents, createTravelListSorting(), 'afterbegin');
-renderTemplate(tripEvents, createEmptyListMessage());
-renderTemplate(tripEvents, createTravelList());
+const renderTravelPoints = (travelListElement, travelPoint) => {
+  const routePoint = new RoutePointView(travelPoint);
+  const routePointEditForm = new EditingFormView(travelPoint);
 
-const travelList = tripEvents.querySelector('.trip-events__list');
+  const switchPointToEditForm = () => {
+    travelListElement.replaceChild(routePointEditForm.getElement(), routePoint.getElement());
+  };
 
-renderTemplate(travelList, createForm(routePoints[0], 'edit'), 'afterbegin');
-renderTemplate(travelList, createForm(routePoints[0], 'add'));
-for(let i = 1; i < POINTS_LIST_ITEMS_COUNT; i++) {
-  renderTemplate(travelList, createNewPoint(routePoints[i]));
-}
+  const switchEditFormPointToPoint = () => {
+    travelListElement.replaceChild(routePoint.getElement(), routePointEditForm.getElement());
+  };
+
+  const removeEditFormListeners = () => {
+    routePointEditForm.getElement().querySelector('.event__rollup-btn').removeEventListener('click', editFormRollupClickHandler);
+    routePointEditForm.getElement().querySelector('form').removeEventListener('submit', editFormSubmitHandler);
+    document.removeEventListener('keydown', switchToPointOnEsk);
+  };
+
+  const editFormSubmitHandler = () => {
+    switchEditFormPointToPoint();
+    removeEditFormListeners();
+  };
+
+  const editFormRollupClickHandler = () => {
+    switchEditFormPointToPoint();
+    removeEditFormListeners();
+  };
+
+  const switchToPointOnEsk = (evt) => {
+    if (evt.keyCode === 27) {
+      switchEditFormPointToPoint();
+    }
+  };
+
+  routePoint.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
+    switchPointToEditForm();
+    document.addEventListener('keydown', switchToPointOnEsk);
+    routePointEditForm.getElement().querySelector('.event__rollup-btn').addEventListener('click', editFormRollupClickHandler);
+    routePointEditForm.getElement().querySelector('form').addEventListener('submit', editFormSubmitHandler);
+  });
+
+  renderElement(travelListElement, routePoint.getElement(), 'end');
+};
+
+
+const renderBoard = (travelBoard, travelPoints) => {
+  if (travelPoints.length === 0) {
+    renderElement(travelBoard, new EmptyListMessageView().getElement(), 'end');
+  }
+
+  const listSorting = new TravelListSortingView();
+  const travelList = new TravelListView();
+
+  renderElement(travelBoard, listSorting.getElement(), 'end');
+  renderElement(travelBoard, travelList.getElement(), 'end');
+
+  travelPoints.forEach((travelPoint) => {
+    renderTravelPoints(travelList.getElement(), travelPoint);
+  });
+};
+
+
+renderHeader();
+renderBoard(travelContainer, routePoints);

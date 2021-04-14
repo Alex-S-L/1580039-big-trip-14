@@ -1,4 +1,6 @@
 /* global require */
+import {turnTemplateIntoElement} from '../util/util.js';
+
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
@@ -49,7 +51,7 @@ const getDestinationDescription = ({pictures, description}) => {
   `;
 };
 
-export const createForm = (point, formMode = 'add') => {
+const createForm = (point, formMode = 'add') => {
   let resetButtonText = 'Cancel';
   let rollUpButton = '';
   if (formMode === 'edit') {
@@ -177,3 +179,26 @@ export const createForm = (point, formMode = 'add') => {
     </form>
   </li>`;
 };
+
+export class FormView {
+  constructor(point) {
+    this._element = null;
+    this._point = point;
+  }
+
+  getTemplate() {
+    return createForm(this._point);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = turnTemplateIntoElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  deleteElement() {
+    this._element = null;
+  }
+}
