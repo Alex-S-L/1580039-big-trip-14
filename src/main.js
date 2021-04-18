@@ -1,14 +1,14 @@
-import {renderElement} from './util/util.js';
+import {renderElement, replaceElements} from './util/render.js';
 
-import {RouteInfoView} from './view/route-info.js';
-import {MenuView} from './view/menu.js';
-import {FilterView} from './view/filter.js';
-import {TravelListSortingView} from './view/travel-list-sorting.js';
-import {EmptyListMessageView} from './view/empty-list-message.js';
-import {TravelListView} from './view/travel-list.js';
-import {RoutePointView} from './view/route-point.js';
-// import {AddingFormView} from './view/point-adding-form.js';
-import {EditingFormView} from './view/point-editing-form.js';
+import RouteInfoView from './view/route-info.js';
+import MenuView from './view/menu.js';
+import FilterView from './view/filter.js';
+import TravelListSortingView from './view/travel-list-sorting.js';
+import EmptyListMessageView from './view/empty-list-message.js';
+import TravelListView from './view/travel-list.js';
+import RoutePointView from './view/route-point.js';
+// import AddingFormView from './view/point-adding-form.js';
+import EditingFormView from './view/point-editing-form.js';
 // import {FormView} from './view/point-edditing-and-adding-form.js';
 
 import {getRoutePointDescription} from './model/mock/route-point.js';
@@ -22,50 +22,35 @@ const headerFilter = pageHeader.querySelector('.trip-controls__filters');
 const travelContainer = document.querySelector('.trip-events');
 
 const renderHeader = () => {
-  renderElement(headerMainInformation, new RouteInfoView(routePoints).getElement(), 'begin');
-  renderElement(headerMenu, new MenuView().getElement(), 'end');
-  renderElement(headerFilter, new FilterView().getElement(), 'end');
+  renderElement(headerMainInformation, new RouteInfoView(routePoints), 'begin');
+  renderElement(headerMenu, new MenuView(), 'end');
+  renderElement(headerFilter, new FilterView(), 'end');
 };
 
 const renderTravelPoints = (travelListElement, travelPoint) => {
   const routePoint = new RoutePointView(travelPoint);
   const routePointEditForm = new EditingFormView(travelPoint);
 
-  const switchPointToEditForm = () => {
-    travelListElement.replaceChild(routePointEditForm.getElement(), routePoint.getElement());
+  const editFormOnSubmit = () => {
+    replaceElements(routePoint, routePointEditForm);
+    routePointEditForm.removeAllListeners();
   };
 
-  const switchEditFormPointToPoint = () => {
-    travelListElement.replaceChild(routePoint.getElement(), routePointEditForm.getElement());
-  };
-
-  const removeEditFormListeners = () => {
-    routePointEditForm.getElement().querySelector('.event__rollup-btn').removeEventListener('click', editFormRollupClickHandler);
-    routePointEditForm.getElement().querySelector('form').removeEventListener('submit', editFormSubmitHandler);
-    document.removeEventListener('keydown', switchToPointOnEsk);
-  };
-
-  const editFormSubmitHandler = () => {
-    switchEditFormPointToPoint();
-    removeEditFormListeners();
-  };
-
-  const editFormRollupClickHandler = () => {
-    switchEditFormPointToPoint();
-    removeEditFormListeners();
-  };
-
-  const switchToPointOnEsk = (evt) => {
+  const switchEditFormToPoint = (evt) => {
     if (evt.keyCode === 27) {
-      switchEditFormPointToPoint();
+      replaceElements(routePoint, routePointEditForm);
+      routePointEditForm.removeAllListeners();
+      return;
     }
+    replaceElements(routePoint, routePointEditForm);
+    routePointEditForm.removeAllListeners();
   };
 
-  routePoint.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
-    switchPointToEditForm();
-    document.addEventListener('keydown', switchToPointOnEsk);
-    routePointEditForm.getElement().querySelector('.event__rollup-btn').addEventListener('click', editFormRollupClickHandler);
-    routePointEditForm.getElement().querySelector('form').addEventListener('submit', editFormSubmitHandler);
+  routePoint.setRollupButtonClickHandler(() => {
+    replaceElements(routePointEditForm, routePoint);
+    routePointEditForm.setDocumentKeyDownHandler(switchEditFormToPoint);
+    routePointEditForm.setRollupButtonClickHandler(switchEditFormToPoint);
+    routePointEditForm.setFormSubmitHandler(editFormOnSubmit);
   });
 
   renderElement(travelListElement, routePoint.getElement(), 'end');
@@ -74,20 +59,19 @@ const renderTravelPoints = (travelListElement, travelPoint) => {
 
 const renderBoard = (travelBoard, travelPoints) => {
   if (travelPoints.length === 0) {
-    renderElement(travelBoard, new EmptyListMessageView().getElement(), 'end');
+    renderElement(travelBoard, new EmptyListMessageView(), 'end');
   }
 
   const listSorting = new TravelListSortingView();
   const travelList = new TravelListView();
 
-  renderElement(travelBoard, listSorting.getElement(), 'end');
-  renderElement(travelBoard, travelList.getElement(), 'end');
+  renderElement(travelBoard, listSorting, 'end');
+  renderElement(travelBoard, travelList, 'end');
 
   travelPoints.forEach((travelPoint) => {
-    renderTravelPoints(travelList.getElement(), travelPoint);
+    renderTravelPoints(travelList, travelPoint);
   });
 };
-
 
 renderHeader();
 renderBoard(travelContainer, routePoints);

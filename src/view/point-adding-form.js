@@ -1,5 +1,5 @@
 /* global require */
-import {turnTemplateIntoElement} from '../util/util.js';
+import AbstractView from './abstract.js';
 
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');
@@ -51,7 +51,7 @@ const getDestinationDescription = ({pictures, description}) => {
   `;
 };
 
-const createAddingForm = (point) => {
+const createAddingForm = (point = {}) => {
   const eventStart = point.dates.from;
   const eventEnd = point.dates.to;
   const eventYearMonthDayHourMinuteStart = dayjs(eventStart).format('YY/MM/DD HH:mm');
@@ -170,25 +170,13 @@ const createAddingForm = (point) => {
   </li>`;
 };
 
-export class AddingFormView {
+export default class AddingForm extends AbstractView {
   constructor(point) {
-    this._element = null;
+    super();
     this._point = point;
   }
 
   getTemplate() {
-    return createAddingForm(this._point);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = turnTemplateIntoElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  deleteElement() {
-    this._element = null;
+    return createAddingForm();
   }
 }

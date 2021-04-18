@@ -1,5 +1,5 @@
 /* global require */
-import {turnTemplateIntoElement} from '../util/util.js';
+import {turnTemplateIntoElement} from '../util/render.js';
 
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');

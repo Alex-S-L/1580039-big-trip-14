@@ -1,5 +1,5 @@
 /* global require */
-import {turnTemplateIntoElement} from '../util/util.js';
+import AbstractView from './abstract.js';
 
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');
@@ -89,25 +89,29 @@ const createNewPoint = (point) => {
   </li>`;
 };
 
-export class RoutePointView {
+export default class RoutePoint extends AbstractView {
   constructor(point) {
-    this._element = null;
+    super();
     this._point = point;
+    this._rollupButtonClickHandler = this._rollupButtonClickHandler.bind(this);
   }
 
   getTemplate() {
     return createNewPoint(this._point);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = turnTemplateIntoElement(this.getTemplate());
-    }
-
-    return this._element;
+  _rollupButtonClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.click(evt);
   }
 
-  deleteElement() {
-    this._element = null;
+  setRollupButtonClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._rollupButtonClickHandler);
+  }
+
+  removeRollupButtonClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').removeEventListener('click', this._rollupButtonClickHandler);
   }
 }
