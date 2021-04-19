@@ -1,5 +1,5 @@
 /* global require */
-import {turnTemplateIntoElement} from '../util/util.js';
+import AbstractView from './abstract.js';
 
 import dayjs from 'dayjs';
 const duration = require('dayjs/plugin/duration');
@@ -171,25 +171,62 @@ const createEditingForm = (point) => {
   </li>`;
 };
 
-export class EditingFormView {
+export default class EditingForm extends AbstractView {
   constructor(point) {
-    this._element = null;
+    super();
     this._point = point;
+    this._rollupButtonClickHandler = this._rollupButtonClickHandler.bind(this);
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._documentKeyDownHandler = this._documentKeyDownHandler.bind(this);
   }
 
   getTemplate() {
     return createEditingForm(this._point);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = turnTemplateIntoElement(this.getTemplate());
-    }
-
-    return this._element;
+  _rollupButtonClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.click(evt);
   }
 
-  deleteElement() {
-    this._element = null;
+  _formSubmitHandler(evt) {
+    this._callback.submit(evt);
+  }
+
+  _documentKeyDownHandler(evt) {
+    this._callback.documentKeyDown(evt);
+  }
+
+  setRollupButtonClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._rollupButtonClickHandler);
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.submit = callback;
+    this.getElement().querySelector('form').addEventListener('submit', this._formSubmitHandler);
+  }
+
+  setDocumentKeyDownHandler(callback) {
+    this._callback.documentKeyDown = callback;
+    window.addEventListener('keydown', this._documentKeyDownHandler);
+  }
+
+  removeRollupButtonClickHandler() {
+    this.getElement().querySelector('.event__rollup-btn').removeEventListener('click', this._rollupButtonClickHandler);
+  }
+
+  removeFormSubmitHandler() {
+    this.getElement().querySelector('form').removeEventListener('submit', this._formSubmitHandler);
+  }
+
+  removeDocumentKeyDownHandler() {
+    window.removeEventListener('keydown', this._documentKeyDownHandler);
+  }
+
+  removeAllListeners() {
+    this.removeRollupButtonClickHandler();
+    this.removeFormSubmitHandler();
+    this.removeDocumentKeyDownHandler();
   }
 }

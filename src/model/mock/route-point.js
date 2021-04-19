@@ -1,5 +1,5 @@
 /* global require */
-import {getRandomInteger} from '../../util/util.js';
+import {getRandomInteger} from '../../util/common.js';
 
 const dayjs = require('dayjs');
 const badMutable = require('dayjs/plugin/badMutable');

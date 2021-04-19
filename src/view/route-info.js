@@ -1,5 +1,6 @@
 /* global require */
-import {turnTemplateIntoElement} from '../util/util.js';
+import AbstractView from './abstract.js';
+
 const dayjs = require('dayjs');
 
 const getTravelPoints = (points) => {
@@ -44,26 +45,13 @@ const createRouteInfoTemplate = (points) => {
   </section>`;
 };
 
-export class RouteInfoView {
+export default class RouteInfo extends AbstractView {
   constructor(points) {
-    this._element = null;
+    super();
     this._points = points;
   }
 
   getTemplate() {
     return createRouteInfoTemplate(this._points);
   }
-
-  getElement() {
-    if (!this._element) {
-      this._element = turnTemplateIntoElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  deleteElement() {
-    this._element = null;
-  }
 }
-
